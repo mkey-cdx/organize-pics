@@ -28,7 +28,7 @@ for pic in pics:
     if not os.path.exists(dst_sub):
         os.makedirs(dst_sub)
     elif not os.path.exists(dst_sub + "/" + pic):
-        shutil.copy2(pic, "{0}/{1}".format(dst_sub, pic))
+        shutil.copy2(pic, dst_sub)
         print("Copied " + pic)
     else:
-        print("File already exists")
+        print("File already exists: " + pic)
