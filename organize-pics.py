@@ -24,7 +24,7 @@ for pic in pics:
     month = time.localtime(metadata.st_mtime).tm_mon
     
     # Copy file to destination subfolders.
-    dst_sub = "{0}/{1}/{2}".format(dst_folder, str(year), str(month))
+    dst_sub = "{0}/{1}/{2:0=2d}".format(dst_folder, year, month)
     if not os.path.exists(dst_sub):
         os.makedirs(dst_sub)
     elif not os.path.exists(dst_sub + "/" + pic):
