@@ -25,7 +25,7 @@ for pic in glob("{}/*.jpg".format(src_folder)):
     dst_sub = "{0}/{1}/{2:0=2d}".format(dst_folder, year, month)
     if not os.path.exists(dst_sub):
         os.makedirs(dst_sub)
-    elif not os.path.exists(dst_sub + "/" + pic):
+    elif not os.path.exists(dst_sub + "/" + os.path.basename(pic)):
         copy2(pic, dst_sub)
         print("Copied " + pic)
     else:
