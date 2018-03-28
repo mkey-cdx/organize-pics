@@ -11,7 +11,8 @@ EXIF_DATETIME = 36867
 
 # Get config data.
 config = ConfigParser()
-config.read("config.ini")
+config_file = os.path.join(os.path.dirname(__file__), 'config.ini')
+config.read(config_file)
 
 src_folder = config.get("Config", "src_folder")
 dst_folder = config.get("Config", "dst_folder")
