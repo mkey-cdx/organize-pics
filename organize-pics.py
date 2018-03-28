@@ -2,9 +2,12 @@
 
 import os
 from glob import glob
+from PIL import Image
 from time import localtime
 from shutil import copy2
 from configparser import ConfigParser
+
+EXIF_DATETIME = 36867
 
 # Get config data.
 config = ConfigParser()
@@ -17,12 +20,17 @@ dst_folder = config.get("Config", "dst_folder")
 for pic in glob("{}/*.jpg".format(src_folder)):
 
     # Parse files metadata.
-    metadata = os.stat(pic)
-    year = localtime(metadata.st_mtime).tm_year
-    month = localtime(metadata.st_mtime).tm_mon
+    try:
+        year, month = Image.open(pic)._getexif()[EXIF_DATETIME].split(":")[:2]
+    except KeyError:
+        print("Error getting exif from {}".format(pic))
+        print("Falling back to systemfile metadata...")
+        metadata = os.stat(pic)
+        year = localtime(metadata.st_mtime).tm_year
+        month = "{0:0=2d}".format(localtime(metadata.st_mtime).tm_mon)
 
     # Copy file to destination subfolders.
-    dst_sub = "{0}/{1}/{2:0=2d}".format(dst_folder, year, month)
+    dst_sub = "{0}/{1}/{2}".format(dst_folder, year, month)
     if not os.path.exists(dst_sub):
         os.makedirs(dst_sub)
     elif not os.path.exists(dst_sub + "/" + os.path.basename(pic)):
