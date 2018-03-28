@@ -16,6 +16,10 @@ config.read("config.ini")
 src_folder = config.get("Config", "src_folder")
 dst_folder = config.get("Config", "dst_folder")
 
+# Check source folder.
+if not os.path.exists(src_folder):
+    raise IOError("Invalid source path. Check config.ini")
+
 # Get img files in source folder.
 for pic in glob("{}/*.jpg".format(src_folder)):
 
@@ -31,10 +35,12 @@ for pic in glob("{}/*.jpg".format(src_folder)):
 
     # Copy file to destination subfolders.
     dst_sub = "{0}/{1}/{2}".format(dst_folder, year, month)
+    dst_pic = dst_sub + "/" + os.path.basename(pic)
+
     if not os.path.exists(dst_sub):
         os.makedirs(dst_sub)
-    elif not os.path.exists(dst_sub + "/" + os.path.basename(pic)):
-        copy2(pic, dst_sub)
-        print("Copied " + pic)
+    elif not os.path.exists(dst_pic):
+        copy2(pic, dst_pic)
+        print("Copied {0} to {1}".format(pic, dst_pic))
     else:
-        print("File already exists: " + pic)
+        print("File already exists: " + dst_pic)
