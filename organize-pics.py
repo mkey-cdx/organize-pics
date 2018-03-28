@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import os
 import glob
@@ -14,15 +14,13 @@ src_folder = config.get("Config", "src_folder")
 dst_folder = config.get("Config", "dst_folder")
 
 # Get img files in source folder.
-os.chdir(src_folder)
-pics = glob.glob("*.jpg")
+for pic in glob.glob("{}/*.jpg".format(src_folder)):
 
-for pic in pics:
     # Parse files metadata.
     metadata = os.stat(pic)
     year = time.localtime(metadata.st_mtime).tm_year
     month = time.localtime(metadata.st_mtime).tm_mon
-    
+
     # Copy file to destination subfolders.
     dst_sub = "{0}/{1}/{2:0=2d}".format(dst_folder, year, month)
     if not os.path.exists(dst_sub):
