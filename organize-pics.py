@@ -12,13 +12,14 @@ from time import localtime
 WORKING_DIR = os.path.dirname(__file__)
 EXIF_DATETIME = 36867
 
-# Get config data file.
+# Get config data.
 config = ConfigParser()
 config_file = os.path.join(WORKING_DIR, 'config.ini')
 config.read(config_file)
 
 src_folder = config.get("Config", "src_folder")
 dst_folder = config.get("Config", "dst_folder")
+file_types = tuple(config.get("Config", "file_types").split(','))
 log_file = os.path.join(WORKING_DIR, config.get("Log", "log_file"))
 
 # Set logger config.
@@ -40,9 +41,15 @@ else:
     logger.debug("Source folder: {}".format(src_folder))
     logger.debug("Destination folder: {}".format(dst_folder))
 
-# Get img files in source folder.
-for pic in glob("{}/*.jpg".format(src_folder)):
 
+# Get each type img files in source folder.
+pics = []
+for file_type in file_types:
+    logger.debug("Getting .{} image files.".format(file_type))
+    pics.extend(glob("{0}/*.{1}".format(src_folder, file_type)))
+
+
+for pic in pics:
     # Parse files metadata.
     try:
         year, month = Image.open(pic)._getexif()[EXIF_DATETIME].split(":")[:2]
