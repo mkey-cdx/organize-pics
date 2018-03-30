@@ -34,13 +34,14 @@ logger.addHandler(file_handler)
 
 
 # Check source folder.
-if not os.path.exists(src_folder):
-    logger.error("Invalid source path: {}".format(src_folder))
-    raise IOError("Invalid source path. Check config.ini")
-else:
-    logger.debug("Source folder: {}".format(src_folder))
-    logger.debug("Destination folder: {}".format(dst_folder))
+try:
+    assert(os.path.exists(src_folder)), "Invalid source path. Check config.ini"
+except AssertionError as ex:
+    logger.critical(ex)
+    raise ex
 
+logger.debug("Source folder: {}".format(src_folder))
+logger.debug("Destination folder: {}".format(dst_folder))
 
 # Get each type img files in source folder.
 pics = []
