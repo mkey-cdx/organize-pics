@@ -46,7 +46,7 @@ else:
 pics = []
 for file_type in file_types:
     logger.debug("Getting .{} image files.".format(file_type))
-    pics.extend(glob("{0}/*.{1}".format(src_folder, file_type)))
+    pics.extend(glob("{}/*.{}".format(src_folder, file_type)))
 
 
 for pic in pics:
@@ -60,8 +60,10 @@ for pic in pics:
         year = localtime(metadata.st_mtime).tm_year
         month = "{0:0=2d}".format(localtime(metadata.st_mtime).tm_mon)
 
+    logger.debug("Exif metadata: year:{} month{}".format(year, month))
+
     # Copy file to destination subfolders.
-    dst_sub = "{0}/{1}/{2}".format(dst_folder, year, month)
+    dst_sub = "{}/{}/{}".format(dst_folder, year, month)
     dst_pic = dst_sub + "/" + os.path.basename(pic)
 
     if not os.path.exists(dst_sub):
@@ -69,6 +71,6 @@ for pic in pics:
         logger.info("Created new directory: {}".format(dst_sub))
     elif not os.path.exists(dst_pic):
         copy2(pic, dst_pic)
-        logger.info("Copied {0} to {1}".format(pic, dst_pic))
+        logger.info("Copied {} to {}".format(pic, dst_pic))
     else:
         logger.info("File already exists: " + dst_pic)
