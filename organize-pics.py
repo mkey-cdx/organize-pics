@@ -9,45 +9,60 @@ from PIL import Image
 from shutil import copy2
 from time import localtime
 
-WORKING_DIR = os.path.dirname(__file__)
 EXIF_DATETIME = 36867
 
-# Get config data.
-config = ConfigParser()
-config_file = os.path.join(WORKING_DIR, 'config.ini')
-config.read(config_file)
 
-src_folder = config.get("Config", "src_folder")
-dst_folder = config.get("Config", "dst_folder")
-file_types = tuple(config.get("Config", "file_types").split(','))
-log_file = os.path.join(WORKING_DIR, config.get("Log", "log_file"))
+class Config:
+    CWD = os.path.dirname(__file__)
+
+    def __init__(self):
+        config = ConfigParser()
+        config_file = os.path.join(self.CWD, 'config.ini')
+        config.read(config_file)
+
+        self.src_folder = config.get("Config", "src_folder")
+        self.dst_folder = config.get("Config", "dst_folder")
+        self.file_types = tuple(config.get("Config", "file_types").split(','))
+        self.log_file = os.path.join(self.CWD, config.get("Log", "log_file"))
+        self.log_level = config.get("Log", "log_level")
+
+    def getLogger(self, caller, file, level):
+        logger = logging.getLogger(caller)
+        logger.setLevel(level)
+
+        stream_handler = logging.StreamHandler()
+        logger.addHandler(stream_handler)
+
+        file_handler = RotatingFileHandler(file, 'a', 100000, 1)
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s: %(message)s')
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
+        return logger
+
+
+# Get config data.
+config = Config()
 
 # Set logger config.
-logger = logging.getLogger(__name__)
-logger.setLevel(config.get("Log", "log_level"))
-stream_handler = logging.StreamHandler()
-logger.addHandler(stream_handler)
-file_handler = RotatingFileHandler(log_file, 'a', 100000, 1)
-formatter = logging.Formatter('%(asctime)s:%(levelname)s: %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
+logger = config.getLogger(__name__, config.log_file, config.log_level)
 
 # Check source folder.
 try:
-    assert(os.path.exists(src_folder)), "Invalid source path. Check config.ini"
+    assert(os.path.exists(config.src_folder)), \
+          "Invalid source path. Check config.ini"
 except AssertionError as ex:
     logger.critical(ex)
     raise ex
 
-logger.debug("Source folder: {}".format(src_folder))
-logger.debug("Destination folder: {}".format(dst_folder))
+logger.debug("Source folder: {}".format(config.src_folder))
+logger.debug("Destination folder: {}".format(config.dst_folder))
 
 # Get each type img files in source folder.
 pics = []
-for file_type in file_types:
+for file_type in config.file_types:
     logger.debug("Getting .{} image files.".format(file_type))
-    pics.extend(glob("{}/*.{}".format(src_folder, file_type)))
+    pics.extend(glob("{}/*.{}".format(config.src_folder, file_type)))
 
 
 for pic in pics:
@@ -55,8 +70,8 @@ for pic in pics:
     try:
         year, month = Image.open(pic)._getexif()[EXIF_DATETIME].split(":")[:2]
     except KeyError:
-        logger.error("Error getting exif from {}".format(pic))
-        logger.error("Falling back to systemfile metadata...")
+        logger.error("Error getting exif from {}. "
+                     "Falling back to systemfile metadata...".format(pic))
         metadata = os.stat(pic)
         year = localtime(metadata.st_mtime).tm_year
         month = "{0:0=2d}".format(localtime(metadata.st_mtime).tm_mon)
@@ -64,7 +79,7 @@ for pic in pics:
     logger.debug("Exif metadata: year:{} month{}".format(year, month))
 
     # Copy file to destination subfolders.
-    dst_sub = "{}/{}/{}".format(dst_folder, year, month)
+    dst_sub = "{}/{}/{}".format(config.dst_folder, year, month)
     dst_pic = dst_sub + "/" + os.path.basename(pic)
 
     if not os.path.exists(dst_sub):
